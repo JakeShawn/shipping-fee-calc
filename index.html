@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運費計算小網站</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ff8d40;
+            font-family: 'Noto Sans TC', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #333;
+        }
+        .result {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>運費試算</h1>
+    <div class="container">
+        <label for="city">選擇縣市</label>
+        <select id="city" onchange="populateDistricts()">
+            <option value="">請選擇縣市</option>
+            <option value="台北市">台北市</option>
+            <option value="新北市">新北市</option>
+            <option value="台中市">台中市</option>
+        </select>
+
+        <label for="district">選擇區域</label>
+        <select id="district">
+            <option value="">請先選擇縣市</option>
+        </select>
+
+        <label for="floor">樓層 (數字輸入)</label>
+        <input type="number" id="floor" min="1">
+
+        <label for="elevator">電梯有無</label>
+        <select id="elevator">
+            <option value="yes">有電梯</option>
+            <option value="no">無電梯</option>
+        </select>
+
+        <button onclick="calculateShipping()">計算運費</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const districts = {
+            "台北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+            "新北市": ["板橋區", "新莊區", "中和區", "永和區", "土城區", "三重區", "蘆洲區"],
+            "台中市": ["中區", "西區", "南區", "北區", "北屯區", "西屯區", "南屯區"]
+        };
+
+        const noDeliveryAreas = ["文山區", "土城區", "中區"];
+
+        function populateDistricts() {
+            const city = document.getElementById('city').value;
+            const districtSelect = document.getElementById('district');
+            districtSelect.innerHTML = '<option value="">請選擇區域</option>';
+            if (districts[city]) {
+                districts[city].forEach(d => {
+                    let opt = document.createElement('option');
+                    opt.value = d;
+                    opt.innerHTML = d;
+                    districtSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function calculateShipping() {
+            const city = document.getElementById('city').value;
+            const district = document.getElementById('district').value;
+            const floor = parseInt(document.getElementById('floor').value);
+            const elevator = document.getElementById('elevator').value;
+            const result = document.getElementById('result');
+
+            if (noDeliveryAreas.includes(district)) {
+                result.innerHTML = "該地區暫不提供配送服務";
+                return;
+            }
+
+            let baseFee = 0;
+            if (city === "台北市" || city === "高雄市") {
+                baseFee = 1000;
+            } else if (["桃園市", "新竹市", "新竹縣", "苗栗縣", "台南市"].includes(city)) {
+                baseFee = 800;
+            } else if (["台中市", "彰化縣", "南投縣", "雲林縣", "嘉義市", "嘉義縣"].includes(city)) {
+                baseFee = 600;
+            }
+
+            let floorFee = 0;
+            if (!isNaN(floor) && floor > 1) {
+                if (elevator === "yes") {
+                    floorFee = (floor - 1) * 100;
+                } else {
+                    floorFee = (floor - 1) * 200;
+                }
+            }
+
+            const totalFee = baseFee + floorFee;
+
+            result.innerHTML = `預估運費：$${totalFee}`;
+        }
+    </script>
+</body>
+</html>
